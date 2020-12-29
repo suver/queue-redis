@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+
+  redis:
+    image: "redis:alpine"
+#    command: redis-server --requirepass somepass
+    ports:
+      - "6379:6379"
+    networks:
+      - legacy
+#    volumes:
+#      - ./redis/data:/var/lib/redis
+#      - ./redis.conf:/usr/local/etc/redis/redis.conf
+#    environment:
+#      - REDIS_REPLICATION_MODE=master
+
+  consumer1:
+    build: ./docker
+    restart: unless-stopped
+    volumes:
+      - ./:/consumer
+    working_dir: /consumer
+    command: "php ./consumer/consumer.php"
+    depends_on:
+      - redis
+    networks:
+      - legacy
+
+  consumer2:
+    build: ./docker
+    restart: unless-stopped
+    volumes:
+      - ./consumer:/consumer
+    working_dir: /consumer
+    command: "php ./consumer.php"
+    depends_on:
+      - redis
+    networks:
+      - legacy
+
+  producer:
+    build: ./docker
+#    restart: unless-stopped
+    volumes:
+      - ./producer:/producer
+    working_dir: /producer
+    command: "php ./producer.php"
+    depends_on:
+      - redis
+    networks:
+      - legacy
+
+networks:
+  legacy:
